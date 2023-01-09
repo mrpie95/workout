@@ -185,46 +185,16 @@ class Exercise {
 }
 
 
-
-
 class Weight {
   // Constructor function to initialize the object
   constructor(mass, count, inUse) {
     this._mass = mass;
     this._count = count;
 
-    if (inUse > count)
+    if (inUse > count || !inUse)
       this._inUse = count;
     else
       this._inUse = inUse;
-  }
-  
-  // Getter method for the mass property
-  get mass() {
-    return this._mass;
-  }
-  
-  // Setter method for the mass property
-  set mass(mass) {
-    this._mass = mass;
-  }
-  
-  // Getter method for the count property
-  get count() {
-    return this._count;
-  }
-  
-  // Setter method for the count property
-  set count(count) {
-    this._count = count;
-  }
-
-  get inUse() {
-    return this._inUse;
-  }
-  
-  set inUse(inUse) {
-    this._inUse = inUse;
   }
 }
 
