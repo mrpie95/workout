@@ -1,29 +1,102 @@
-// custom menu function
-function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('Custom Menu')
-      .addItem('Save Data','saveData')
-      .addToUi();
+
+function onEdit(e) {
+  // get event object data: sheet name, row number and column number
+  const sheet = e.range.getSheet();
+  const row = e.range.rowStart;
+  const col = e.range.columnStart;
+  sheet.getRange(row, col).uncheck();
+
+  const increment = 7;
+  const decrement = 6;
+  
+  var exerciseName = 0;
+
+  if (col == increment)
+    exerciseName = sheet.getRange(row, col-4).getValue();
+  else if (col == decrement)
+    exerciseName = sheet.getRange(row, col-3).getValue();  
+
+  
+  const exercises = load2(exerciseName);
+  const exercise = exercises.find(e => e._name == exerciseName)
+
+
+  if (col == increment)
+    exercise.incrementBySmallestWeight();
+  else if (col == decrement)
+    exercise.decrementBySmallestWeight();  
+
+  saveExercises(exercises)  
 }
 
 
-function intialiseExercises() {
+function load2(exerciseName) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Data");
+  var emptyRow = findFirstEmptyCell("Data", "A", 10)-1;
+  var rawExerciseData = sheet.getRange(`A10:A${emptyRow}`).getValues()
+  var exercises = []
+  
+  for (rawE of rawExerciseData){
+    
+    var myObject = JSON.parse(rawE) 
+    var weights = []
+
+    for (const weight of myObject._weights){
+      const {_mass, _count, _inUse} = weight;
+      weights.push(new Weight(_mass, _count, _inUse))
+    }
+    exercises.push( new Exercise(myObject._owner, myObject._name, weights, myObject._barMass))
+  }
+
+  return exercises
+}
+
+
+function load(exerciseName) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Data");
+  var emptyRow = findFirstEmptyCell("Data", "A", 10)-1;
+  var rawExerciseData = sheet.getRange(`A10:A${emptyRow}`).getValues()
+  var exercises = []
+  
+  for (rawE of rawExerciseData){
+    
+    var myObject = JSON.parse(rawE) 
+    var weights = []
+
+    for (const weight of myObject._weights){
+      const {_mass, _count, _inUse} = weight;
+      weights.push(new Weight(_mass, _count, _inUse))
+    }
+    exercises.push( new Exercise(myObject._owner, myObject._name, weights, myObject._barMass))
+  }
+
+  return exercises.find(e => e._name == exerciseName)
+}
+
+
+function initialiseExercises() {
+
   const availbleWeights = [ new Weight(1.25, 4, 2),  new Weight(2.5, 4, 0),  new Weight(5, 2, 0),  new Weight(10, 2, 0),new Weight(20, 2, 0)]
 
   var exercises = []
   exercises.push(new Exercise('Kyra','Bench Press', availbleWeights, 7))
-  // exercises.push(new Exercise('Michael','Bench Press', availbleWeights, 7))
-  // exercises.push(new Exercise('Michael','Shoulder Press', availbleWeights, 7))
+  exercises.push(new Exercise('Kyra','Shoulder Press', availbleWeights, 7))
+  exercises.push(new Exercise('Kyra','Dead Lift', availbleWeights, 7))
+  exercises.push(new Exercise('Kyra','Squat', availbleWeights, 7))
+  exercises.push(new Exercise('Kyra','Barbell Row', availbleWeights, 7))
   
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Ky Data");  
-  var offset = 29
+  saveExercises(exercises)
+  
+}
+
+function saveExercises(exercises){
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Data");  
+  var offset = 10
 
   for (const e of exercises){
-    sheet.getRange(`B${offset}`).setValue(JSON.stringify(e) )
+    sheet.getRange(`A${offset}`).setValue(JSON.stringify(e) )
     offset++
   }
-
-
 }
 
 //load all exercise and update their weight sets to new weights
@@ -43,160 +116,66 @@ function setExercises() {
   sheet.getRange("B29").setValue(JSON.stringify(benchPress))
 }
 
-function loadExercises() {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Ky Data");
-  var myObject = JSON.parse(sheet.getRange("B29").getValue())  
-  var weights = []
+// function loadExercise() {
+//   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Data");
+//   var myObject = JSON.parse(sheet.getRange("B29").getValue())  
+//   var weights = []
 
-  for (const weight of myObject._weights){
-    const {_mass, _count, _inUse} = weight;
-    weights.push(new Weight(_mass, _count, _inUse))
-  }
+//   for (const weight of myObject._weights){
+//     const {_mass, _count, _inUse} = weight;
+//     weights.push(new Weight(_mass, _count, _inUse))
+//   }
 
-  var exercise = new Exercise(myObject._owner, myObject._name, weights, myObject._barMass)
+//   var exercise = new Exercise(myObject._owner, myObject._name, weights, myObject._barMass)
 
 
-  SpreadsheetApp.getUi().alert(exercise.currentMass())
+//   SpreadsheetApp.getUi().alert(exercise.currentMass())
 
-  exercise.incrementBySmallestWeight()
+//   exercise.incrementBySmallestWeight()
   
-  SpreadsheetApp.getUi().alert(exercise.currentMass())
+//   SpreadsheetApp.getUi().alert(exercise.currentMass())
 
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Ky Data");
+//   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Ky Data");
   
-  sheet.getRange("B29").setValue(JSON.stringify(exercise, null, 2))
-
-  // SpreadsheetApp.getUi().alert()
-  // SpreadsheetApp.getUi().alert(JSON.stringify(exercise, null, 2))
-}
-
-function loadExercises2() {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Ky Data");
-  var myObject = JSON.parse(sheet.getRange("B29").getValue())  
-  var weights = []
-
-  for (const weight of myObject._weights){
-    const {_mass, _count, _inUse} = weight;
-    weights.push(new Weight(_mass, _count, _inUse))
-  }
-
-  var exercise = new Exercise(myObject._owner, myObject._name, weights, myObject._barMass)
+//   sheet.getRange("B29").setValue(JSON.stringify(exercise, null, 2))
 
 
+//   // SpreadsheetApp.getUi().alert(JSON.stringify(exercise, null, 2))
+// }
 
-  // SpreadsheetApp.getUi().alert(exercise.maxMass())
-  // SpreadsheetApp.getUi().alert(exercise.currentMass())
-  // SpreadsheetApp.getUi().alert(JSON.stringify(exercise, null, 2))
+// function loadExercises2() {
+//   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Ky Data");
+//   var myObject = JSON.parse(sheet.getRange("B29").getValue())  
+//   var weights = []
+
+//   for (const weight of myObject._weights){
+//     const {_mass, _count, _inUse} = weight;
+//     weights.push(new Weight(_mass, _count, _inUse))
+//   }
+
+//   var exercise = new Exercise(myObject._owner, myObject._name, weights, myObject._barMass)
+
+
+
+//   // SpreadsheetApp.getUi().alert(exercise.maxMass())
+//   // SpreadsheetApp.getUi().alert(exercise.currentMass())
+//   // SpreadsheetApp.getUi().alert(JSON.stringify(exercise, null, 2))
   
-  SpreadsheetApp.getUi().alert(exercise.currentMass())
+//   SpreadsheetApp.getUi().alert(exercise.currentMass())
 
-  exercise.decrementBySmallestWeight()
+//   exercise.decrementBySmallestWeight()
   
-  SpreadsheetApp.getUi().alert(exercise.currentMass())
+//   SpreadsheetApp.getUi().alert(exercise.currentMass())
 
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Ky Data");
+//   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Ky Data");
   
-  sheet.getRange("B29").setValue(JSON.stringify(exercise, null, 2))
+//   sheet.getRange("B29").setValue(JSON.stringify(exercise, null, 2))
 
-  // SpreadsheetApp.getUi().alert()
-  // SpreadsheetApp.getUi().alert(JSON.stringify(exercise, null, 2))
-}
-
-
-class Exercise {
-  // Constructor function to initialize the object
-  constructor(owner, name, weights, barMass) {
-    this._owner = owner;
-    this._name = name;
-    this._barMass = barMass;
-    this._weights = weights;
-  }
-  
-   currentMass() {
-    var totalMass = this._weights.reduce(function(total, weight) {
-      return total + weight.mass * weight.inUse
-    }, 0);
-    
-    return totalMass + this._barMass
-  }
-
-  maxMass() {
-    // Calculate the total mass by summing the masses of all the weights
-    var totalMass = this._weights.reduce(function(total, weight) {
-      
-      return total + weight.mass * weight.count
-    }, 0);
-    
-    return totalMass + this._barMass
-  }
-
-  updateAvailbleWeights(availbleWeights){
-    // for(a of availbleWeights){
-      
-    // }
-  }
-
-  findSmallestWeight() {
-    return Math.min(...this._weights. map(weight => weight.mass)); 
-  }
-
-  incrementBySmallestWeight() {
-    const newWeight = this.currentMass() + 2*this.findSmallestWeight() - this._barMass; //new weight to match
-    this.findOptimalWeights(newWeight)
-  }
+//   // SpreadsheetApp.getUi().alert()
+//   // SpreadsheetApp.getUi().alert(JSON.stringify(exercise, null, 2))
+// }
 
 
-  decrementBySmallestWeight() {
-    var newWeight = this.currentMass() - 2*this.findSmallestWeight() - this._barMass; //new weight to match
-    this.findOptimalWeights(newWeight)
-  }
-  
-  //find the optimal weight configuration
-  findOptimalWeights(newWeight) {
-    // Sort the weights by mass in descending order
-    this._weights.sort(function(a, b) {
-      return b.mass - a.mass;
-    });
-
-    //reset weight configuration
-    this._weights.forEach(w => (w._inUse = 0))
-
-    //find the best weight combination 
-    for (const weight of this._weights){
-      for (var i = weight._count; i > 0; i-=2) {
-        const twoSidedWeight =  i*weight._mass;
-        if(twoSidedWeight <= newWeight){          
-          weight._inUse = i;
-          newWeight -= weight._mass*weight._inUse;
-          break;
-        }
-      }
-
-      if (newWeight == 0)
-      {
-        return true;
-      }
-      else if (newWeight < 0) {
-        return false;
-      }
-
-    }
-  }
-}
-
-
-class Weight {
-  // Constructor function to initialize the object
-  constructor(mass, count, inUse) {
-    this._mass = mass;
-    this._count = count;
-
-    if (inUse > count || !inUse)
-      this._inUse = count;
-    else
-      this._inUse = inUse;
-  }
-}
 
 
 
