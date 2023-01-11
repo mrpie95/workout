@@ -9,9 +9,4 @@ class Weight {
     else
       this._inUse = inUse;
   }
-
-  myFunction()
-  {
-     SpreadsheetApp.getUi().alert('testesteste5est')
-  }
 }

@@ -1,12 +1,16 @@
 
 class Exercise {
   // Constructor function to initialize the object
-  constructor(owner, name, weights, barMass) {
+  constructor(owner, name, weights, barMass, setName, incrementBothSides) {
     this._owner = owner;
     this._name = name;
+    this._set = setName;
     this._barMass = barMass;
     this._weights = weights;
+    this._incrementBothSides = incrementBothSides;
   }
+
+
   
    currentMass() {
     
@@ -33,19 +37,43 @@ class Exercise {
     // }
   }
 
-  findSmallestWeight() {
-    return Math.min(...this._weights. map(weight => weight._mass)); 
+  listInUseWeights() {
+      return this._weights.filter(w => w._inUse > 0).map(w => `${w._inUse} x ${w._mass}kg`).join(', ');  
   }
 
-  incrementBySmallestWeight() {
+  findSmallestWeight(useSmallestWeight) {
+    return Math.min(...this._weights. map(weight => {
+      if (useSmallestWeight)
+        return weight._mass
+        
+      if (weight._mass < 1.25)
+        return 1000;
+
+      return weight._mass
+    })); 
+  }
+
+  incrementWeight() {
  
-    const newWeight = this.currentMass() + 2*this.findSmallestWeight() - this._barMass; //new weight to match
+    const newWeight = this.currentMass() + 2*this.findSmallestWeight(false) - this._barMass; //new weight to match
     this.findOptimalWeights(newWeight)
   }
 
 
-  decrementBySmallestWeight() {
-    var newWeight = this.currentMass() - 2*this.findSmallestWeight() - this._barMass; //new weight to match
+  decrementWeight() {
+    var newWeight = this.currentMass() - 2*this.findSmallestWeight(false) - this._barMass; //new weight to match
+    this.findOptimalWeights(newWeight)
+  }
+  
+
+  incrementWeightMini() {
+    const newWeight = this.currentMass() + 2*this.findSmallestWeight(true) - this._barMass; //new weight to match
+    this.findOptimalWeights(newWeight)
+  }
+
+
+  decrementWeightMini() {
+    var newWeight = this.currentMass() - 2*this.findSmallestWeight(true) - this._barMass; //new weight to match
     this.findOptimalWeights(newWeight)
   }
   
