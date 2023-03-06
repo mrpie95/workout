@@ -6,6 +6,7 @@ const EXERCISE_ROW = 2;
 const INCREMENT_COL = 11
 
 const DASHBOARD_SHEET = 'Dashboard';
+const DASHBOARD_PREVIOUS_WEIGHT= 'A';
 const DASHBOARD_TOTAL_MASS_COL= 'B';
 const DASHBOARD_EXERCISE_NAME = 'C';
 const DASHBOARD_WEIGHT_CONFIGURATION = 'D';
@@ -19,11 +20,15 @@ const LOG_DATE_COL = 'A'
 const LOG_SET_COL = 'B'
 const LOG_NAME_COL = 'C'
 const LOG_WEIGHT_COL = 'D'
+const LOG_VOLUME_COL = 'J'
 
 const LOG_ALL_LOGS = 'A2:I1000'
 
 const TODAYS_SET_RANGE = 'C4'
 const SET_RANGE = 'E6:I8'
+
+const SET_RANGE_START_COL = 'E'
+const SET_RANGE_START_ROW = 6
 
 
 function print(val, json = false){
@@ -48,44 +53,61 @@ function saveSet(incrementWeights) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const dashboardSheet = spreadsheet.getSheetByName(DASHBOARD_SHEET);
   const dataSheet = spreadsheet.getSheetByName(LOG_SHEET);
-  const setRange = 'E6:I8'
+  const setRange = SET_RANGE;
   const todaysSet = dashboardSheet.getRange(TODAYS_SET_RANGE).getValue();  
 
   if (!todaysSet)
     print('Error no set data - reinitialise')
 
-  const exercises = getSet(todaysSet)
+  const exercises = getSet(todaysSet).sort(function(a, b) {
+    return b._name.localeCompare(a._name);
+  });
+  
   const sets = dashboardSheet.getRange(setRange).getValues();
   const startRow = findFirstEmptyCell(LOG_SHEET,'A',1)
 
   const endRow = startRow+exercises.length-1;
   const setsRange = createRange('E',startRow,'I',endRow)
-
-  // print(exercises.length)
-  // print(sets)
-  // print(setsRange)
-  dataSheet.getRange(setsRange).setValues(sets); 
   
+  dataSheet.getRange(setsRange).setValues(sets); 
 
-  var offset = 0;
+  //keeps traack of spread sheet rows  
+  var rangeOffset = 0;
+  var logOffset = 0;
 
   for (e of exercises){
-    const dateRange = `${LOG_DATE_COL}${startRow+offset}`
-    const setRange = `${LOG_SET_COL}${startRow+offset}`
-    const nameRange = `${LOG_NAME_COL}${startRow+offset}`
-    const weightRange = `${LOG_WEIGHT_COL}${startRow+offset}`
-    
+    const firstSetRange = `${SET_RANGE_START_COL}${SET_RANGE_START_ROW+rangeOffset}`
+    const firstSet = dashboardSheet.getRange(firstSetRange).getValue();
 
-    dataSheet.getRange(dateRange).setValue(getCurrentDate()); 
-    dataSheet.getRange(setRange).setValue(todaysSet); 
-    dataSheet.getRange(nameRange).setValue(e._name); 
-    dataSheet.getRange(weightRange).setValue(e.currentMass()); 
+    // print(`${LOG_DATE_COL}${startRow+logOffset}`)   
 
-    if(incrementWeights){
-      e.incrementWeight()
-    }
+    // if(firstSet != ''){
+      //these values represent the logged data
+      const dateRange = `${LOG_DATE_COL}${startRow+logOffset}`
+      const setRange = `${LOG_SET_COL}${startRow+logOffset}`
+      const nameRange = `${LOG_NAME_COL}${startRow+logOffset}`
+      const weightRange = `${LOG_WEIGHT_COL}${startRow+logOffset}`
+      const volumeRange = `${LOG_VOLUME_COL}${startRow+logOffset}`
 
-    offset++; 
+      const currentMass = e.currentMass();    
+      const volume = sets[logOffset].toString().split(",").reduce((accumulator, currentValue) => accumulator + Number(currentValue)*currentMass,0)
+
+      // print(nameRange)
+      
+      dataSheet.getRange(dateRange).setValue(getCurrentDate()); 
+      dataSheet.getRange(setRange).setValue(todaysSet); 
+      dataSheet.getRange(nameRange).setValue(e._name); 
+      dataSheet.getRange(weightRange).setValue(currentMass); 
+      dataSheet.getRange(volumeRange).setValue(volume); 
+
+      if(incrementWeights){
+        e.incrementWeight()
+      }
+
+      logOffset++; 
+    // }
+
+    rangeOffset++;
   }
 
   if(incrementWeights){
@@ -93,6 +115,7 @@ function saveSet(incrementWeights) {
 
     for (let i = 0; i < allExervises.length; i++) { 
       for (e of exercises){
+
         if(allExervises[i]._name == e._name){
           allExervises[i] = e;
         }
@@ -135,9 +158,12 @@ function createRange(startCol, startRow, endCol, endRow){
   return `${startCol}${startRow}:${endCol}${endRow}`
 }
 
+//function 
+
 function populateDashboard(intialise) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const dashboardSheet = spreadsheet.getSheetByName(DASHBOARD_SHEET);
+
 
   if(intialise){
      dashboardSheet.getRange(TODAYS_SET_RANGE).setValue('A'); 
@@ -159,21 +185,80 @@ function populateDashboard(intialise) {
     const nameRange = `${DASHBOARD_EXERCISE_NAME}${offset}`
     const massRange = `${DASHBOARD_TOTAL_MASS_COL}${offset}`
     const weightsRange = `${DASHBOARD_WEIGHT_CONFIGURATION}${offset}`
+    const previousWeightRange = `${DASHBOARD_PREVIOUS_WEIGHT}${offset}`
+
+    e.setPreviousWeights();
   
+    dashboardSheet.getRange(previousWeightRange).setValue(e._previousWeight); 
     dashboardSheet.getRange(nameRange).setValue(e._name); 
-    dashboardSheet.getRange(massRange).setValue(`${e.currentMass()}kg`); 
-    dashboardSheet.getRange(weightsRange).setValue(e.listInUseWeights())
-    offset++; 
+    dashboardSheet.getRange(massRange).setValue(`${e.currentMass()}`); 
+
+    // dashboardSheet.getRange(weightsRange).setValue(e.colouredListInUseWeights())
+
+    /// ----
+
+    const weightsInUse = e.colouredListInUseWeights(returnZeroWeights = true);
+
+    const totalText = weightsInUse.map(w => `${w.inUse}${w.mass}`).join(" ")
+
+    dashboardSheet.getRange(weightsRange).setValue(totalText)
+
+    // print(totalText)
+
+    // var textOffset = 0; 
+
+    // const cell = dashboardSheet.getRange(weightsRange);
+
+    // for(w of weightsInUse){
+    //   const multiplierText = w.inUse;
+    //   const massText = w.mass;
+    //   const text = `${multiplierText}${massText}`
+
+    //   textOffset += text.length;
+
+    //   // print(textOffset)
+
+    //   const boldStyle = SpreadsheetApp.newTextStyle()
+    //       // .setUnderline(false)
+    //       // .setBold(true)
+    //       .setForegroundColor("#000000")
+    //       .build();
+
+    //   const boldStyle2 = SpreadsheetApp.newTextStyle()
+    //       // .setUnderline(false)
+    //       // .setBold(true)
+    //       .setForegroundColor("#4287f5")
+    //       .build();
+    
+    //   const richText = SpreadsheetApp.newRichTextValue()
+    //   // .setText(text)
+    //   .setTextStyle(0, 5, boldStyle)
+    //   .setTextStyle(6, 11, boldStyle2)
+    //   .build()
+
+      // const richText = SpreadsheetApp.newRichTextValue()
+      // .setText(text)
+      // .setTextStyle(0, multiplierText.length, boldStyle)
+      // .setTextStyle(text.length-1, 11, boldStyle2)
+      // .build()
+
+      // cell.setRichTextValue(richText);
+
+    // }
+
+
+
+   
+
+
+  offset++; 
 
   }
 }
 
 function getSet(setName){
   const allExercises = load2();
-  // print(setName)
   return allExercises.filter(e =>  {
-    // print(e._set, true)
-    // print(e._set.includes(setName))
     return e._set.includes(setName)
   }
   )
@@ -191,14 +276,13 @@ function onEdit(e) {
   const incrementMini = INCREMENT_COL+3;
   const decrementMini = incrementMini-1;
 
-  // print(JSON.stringify(sheet,null,2))
-
   if ((col != increment && row <= 6 && row >= 10) || (col != decrement && row <= 6 && row >= 10))
     return false
 
   var listOffset = 7;
   var nameOffset = 8 ;
   var totalMassOffset = 9;
+  var previousWeightOffset = 10;
 
   switch (col){   
     case decrement:
