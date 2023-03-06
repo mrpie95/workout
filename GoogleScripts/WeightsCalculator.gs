@@ -280,7 +280,7 @@ function onEdit(e) {
 
 
   sheet.getRange(row, col-listOffset).setRichTextValue(text);//.setValue(exercise.listInUseWeights())
-  sheet.getRange(row, col-totalMassOffset).setValue(`${exercise.currentMass()}kg`)
+  sheet.getRange(row, col-totalMassOffset).setValue(`${exercise.currentMass()}`)
 }
 
 function load2() {
