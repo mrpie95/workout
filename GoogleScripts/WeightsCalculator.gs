@@ -212,7 +212,11 @@ function getSet(setName){
 }
 
 function onEdit(e) {
+  
   const sheet = e.range.getSheet();
+
+  if (e.range.getSheet().getName() === 'Dashboard') {
+
   const row = e.range.rowStart;
   const col = e.range.columnStart;
   sheet.getRange(row, col).uncheck();
@@ -281,6 +285,8 @@ function onEdit(e) {
 
   sheet.getRange(row, col-listOffset).setRichTextValue(text);//.setValue(exercise.listInUseWeights())
   sheet.getRange(row, col-totalMassOffset).setValue(`${exercise.currentMass()}`)
+
+  }
 }
 
 function load2() {
