@@ -169,15 +169,57 @@ class Exercise {
 
   colouredListInUseWeights(returnZeroWeights) {
 
-    if(returnZeroWeights){
-      return this._weights.map(w =>
-        {
+    // var richText = SpreadsheetApp.newRichTextValue().setText(text)
+    // const styles = [{start:0, end: 5, style: boldStyle}, {start:6, end: 9, style: boldStyle2}, {start:10, end: 15, style: boldStyle3}]
+    // for (s of styles) richText = richText.setTextStyle(s.start, s.end, s.style);
+    // richText = richText.build()
 
-          return {
-            inUse:  `${w._inUse}x`,
-            mass: w._mass
-          }
-        })
+    if(returnZeroWeights){
+      let counter = 0 
+
+      let textObjects = this._weights.map(w => {
+        const text = `${w._inUse}x${w._mass}`;
+        const inUseStart = counter;
+        const massStart = counter+2;
+        counter += text.length + 1;
+        const end = counter-1;
+
+        let inUseStyle = SpreadsheetApp.newTextStyle().setForegroundColor("#674ea7").build();
+        let massStyle = SpreadsheetApp.newTextStyle().setForegroundColor("#000000").build();
+
+        if (w._inUse <= 0){
+          inUseStyle = SpreadsheetApp.newTextStyle().setForegroundColor("#cccccc").build();
+          massStyle = inUseStyle;
+        }
+        
+      
+        return {
+          text,
+          inUseStyle,
+          massStyle,
+          inUseStart,  
+          massStart,  
+          end,
+        }
+      })
+
+      const totalText = textObjects.flatMap(t => t.text).join(" ")
+
+      let richText = SpreadsheetApp.newRichTextValue().setText(totalText)
+
+      for (const t of textObjects){
+        const { inUseStyle, massStyle,inUseStart, massStart,end,} = t;
+
+
+        //in use colouring
+        richText = richText.setTextStyle(inUseStart, inUseStart+2, inUseStyle);
+        // mass colouring
+        richText = richText.setTextStyle(massStart,end, massStyle);
+      }
+
+      richText = richText.build()
+
+      return richText;
     }
     else {
        return this._weights.filter(w => w._inUse > 0).map(w =>
@@ -189,9 +231,6 @@ class Exercise {
           }
         })
     }  
-        // ).join(' ');  
-
-      //return this._weights.filter(w => w._inUse > 0).map(w => `${w._inUse} x ${w._mass}kg`).join(', ');  
   }
 
 

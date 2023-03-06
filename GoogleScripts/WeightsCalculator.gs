@@ -195,62 +195,31 @@ function populateDashboard(intialise) {
 
     // dashboardSheet.getRange(weightsRange).setValue(e.colouredListInUseWeights())
 
-    /// ----
+    const text = e.colouredListInUseWeights(true)
 
-    const weightsInUse = e.colouredListInUseWeights(returnZeroWeights = true);
+    dashboardSheet.getRange(weightsRange).setRichTextValue(text);
 
-    const totalText = weightsInUse.map(w => `${w.inUse}${w.mass}`).join(" ")
 
-    dashboardSheet.getRange(weightsRange).setValue(totalText)
 
-    // print(totalText)
 
-    // var textOffset = 0; 
+      //----------------------
 
-    // const cell = dashboardSheet.getRange(weightsRange);
+    //   var oldContent = cell.getValue();
+    //   var newContent = "new content";
+    //   var space = " ";
+    //   var text = oldContent + space + newContent;
 
-    // for(w of weightsInUse){
-    //   const multiplierText = w.inUse;
-    //   const massText = w.mass;
-    //   const text = `${multiplierText}${massText}`
+    //   var richText = SpreadsheetApp.newRichTextValue().setText(text)
 
-    //   textOffset += text.length;
+    //   const styles = [{start:0, end: 5, style: boldStyle}, {start:6, end: 9, style: boldStyle2}, {start:10, end: 15, style: boldStyle3}]
 
-    //   // print(textOffset)
-
-    //   const boldStyle = SpreadsheetApp.newTextStyle()
-    //       // .setUnderline(false)
-    //       // .setBold(true)
-    //       .setForegroundColor("#000000")
-    //       .build();
-
-    //   const boldStyle2 = SpreadsheetApp.newTextStyle()
-    //       // .setUnderline(false)
-    //       // .setBold(true)
-    //       .setForegroundColor("#4287f5")
-    //       .build();
+    //   for (s of styles) richText = richText.setTextStyle(s.start, s.end, s.style);
     
-    //   const richText = SpreadsheetApp.newRichTextValue()
-    //   // .setText(text)
-    //   .setTextStyle(0, 5, boldStyle)
-    //   .setTextStyle(6, 11, boldStyle2)
-    //   .build()
 
-      // const richText = SpreadsheetApp.newRichTextValue()
-      // .setText(text)
-      // .setTextStyle(0, multiplierText.length, boldStyle)
-      // .setTextStyle(text.length-1, 11, boldStyle2)
-      // .build()
-
-      // cell.setRichTextValue(richText);
-
-    // }
-
-
-
-   
-
-
+    // richText = richText.build()
+    //   cell2.setRichTextValue(richText);
+            
+  
   offset++; 
 
   }
