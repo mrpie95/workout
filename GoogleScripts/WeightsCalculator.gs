@@ -196,30 +196,8 @@ function populateDashboard(intialise) {
     // dashboardSheet.getRange(weightsRange).setValue(e.colouredListInUseWeights())
 
     const text = e.colouredListInUseWeights(true)
-
     dashboardSheet.getRange(weightsRange).setRichTextValue(text);
 
-
-
-
-      //----------------------
-
-    //   var oldContent = cell.getValue();
-    //   var newContent = "new content";
-    //   var space = " ";
-    //   var text = oldContent + space + newContent;
-
-    //   var richText = SpreadsheetApp.newRichTextValue().setText(text)
-
-    //   const styles = [{start:0, end: 5, style: boldStyle}, {start:6, end: 9, style: boldStyle2}, {start:10, end: 15, style: boldStyle3}]
-
-    //   for (s of styles) richText = richText.setTextStyle(s.start, s.end, s.style);
-    
-
-    // richText = richText.build()
-    //   cell2.setRichTextValue(richText);
-            
-  
   offset++; 
 
   }
@@ -296,7 +274,12 @@ function onEdit(e) {
   }
 
   saveExercises(exercises)  
-  sheet.getRange(row, col-listOffset).setValue(exercise.listInUseWeights())
+
+  const text = exercise.colouredListInUseWeights(true)
+  // dashboardSheet.getRange(weightsRange).setRichTextValue(text);
+
+
+  sheet.getRange(row, col-listOffset).setRichTextValue(text);//.setValue(exercise.listInUseWeights())
   sheet.getRange(row, col-totalMassOffset).setValue(`${exercise.currentMass()}kg`)
 }
 
