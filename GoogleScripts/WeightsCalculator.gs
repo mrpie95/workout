@@ -17,9 +17,11 @@ const LOG_COL = 'A';
 const LOG_ROW = 2;
 
 const LOG_DATE_COL = 'A'
-const LOG_SET_COL = 'B'
+const LOG_SETNAME_COL = 'B'
 const LOG_NAME_COL = 'C'
 const LOG_WEIGHT_COL = 'D'
+const LOG_SET_START_COL = 'E'
+const LOG_SET_END_COL = 'I'
 const LOG_VOLUME_COL = 'J'
 
 const LOG_ALL_LOGS = 'A2:I1000'
@@ -53,7 +55,6 @@ function saveSet(incrementWeights) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const dashboardSheet = spreadsheet.getSheetByName(DASHBOARD_SHEET);
   const dataSheet = spreadsheet.getSheetByName(LOG_SHEET);
-  const setRange = SET_RANGE;
   const todaysSet = dashboardSheet.getRange(TODAYS_SET_RANGE).getValue();  
 
   if (!todaysSet)
@@ -63,41 +64,36 @@ function saveSet(incrementWeights) {
     return b._name.localeCompare(a._name);
   });
   
-  const sets = dashboardSheet.getRange(setRange).getValues();
   const startRow = findFirstEmptyCell(LOG_SHEET,'A',1)
-
-  const endRow = startRow+exercises.length-1;
-  const setsRange = createRange('E',startRow,'I',endRow)
-  
-  dataSheet.getRange(setsRange).setValues(sets); 
 
   //keeps traack of spread sheet rows  
   var rangeOffset = 0;
   var logOffset = 0;
 
   for (e of exercises){
+    const rowOffset = startRow+logOffset;
     const firstSetRange = `${SET_RANGE_START_COL}${SET_RANGE_START_ROW+rangeOffset}`
     const firstSet = dashboardSheet.getRange(firstSetRange).getValue();
 
-    // print(`${LOG_DATE_COL}${startRow+logOffset}`)   
-
-    // if(firstSet != ''){
+    if(firstSet != ''){
       //these values represent the logged data
-      const dateRange = `${LOG_DATE_COL}${startRow+logOffset}`
-      const setRange = `${LOG_SET_COL}${startRow+logOffset}`
-      const nameRange = `${LOG_NAME_COL}${startRow+logOffset}`
-      const weightRange = `${LOG_WEIGHT_COL}${startRow+logOffset}`
-      const volumeRange = `${LOG_VOLUME_COL}${startRow+logOffset}`
+      const dateRange = `${LOG_DATE_COL}${rowOffset}`
+      const setNameRange = `${LOG_SETNAME_COL}${rowOffset}`
+      const nameRange = `${LOG_NAME_COL}${rowOffset}`
+      const weightRange = `${LOG_WEIGHT_COL}${rowOffset}`
+      const dashboardSetRange = createRange(LOG_SET_START_COL,6+rangeOffset,LOG_SET_END_COL,6+rangeOffset);
+      const dataSheetSetRange = createRange(LOG_SET_START_COL,rowOffset,LOG_SET_END_COL,rowOffset);
+      const volumeRange = `${LOG_VOLUME_COL}${rowOffset}`
 
-      const currentMass = e.currentMass();    
-      const volume = sets[logOffset].toString().split(",").reduce((accumulator, currentValue) => accumulator + Number(currentValue)*currentMass,0)
-
-      // print(nameRange)
+      const todaysSets = dashboardSheet.getRange(dashboardSetRange).getValues();
+      const currentMass = e.currentMass();  
+      const volume = todaysSets.toString().split(",").reduce((accumulator, currentValue) => accumulator + Number(currentValue)*currentMass,0)
       
       dataSheet.getRange(dateRange).setValue(getCurrentDate()); 
-      dataSheet.getRange(setRange).setValue(todaysSet); 
+      dataSheet.getRange(setNameRange).setValue(todaysSet); 
       dataSheet.getRange(nameRange).setValue(e._name); 
       dataSheet.getRange(weightRange).setValue(currentMass); 
+      dataSheet.getRange(dataSheetSetRange).setValues(todaysSets);
       dataSheet.getRange(volumeRange).setValue(volume); 
 
       if(incrementWeights){
@@ -105,7 +101,7 @@ function saveSet(incrementWeights) {
       }
 
       logOffset++; 
-    // }
+    }
 
     rangeOffset++;
   }
