@@ -27,7 +27,7 @@ const LOG_VOLUME_COL = 'J'
 const LOG_ALL_LOGS = 'A2:I1000'
 
 const TODAYS_SET_RANGE = 'C4'
-const SET_RANGE = 'E6:I8'
+const SET_RANGE = 'A6:I50'
 
 const SET_RANGE_START_COL = 'E'
 const SET_RANGE_START_ROW = 6
@@ -96,9 +96,9 @@ function saveSet(incrementWeights) {
       dataSheet.getRange(dataSheetSetRange).setValues(todaysSets);
       dataSheet.getRange(volumeRange).setValue(volume); 
 
-      if(incrementWeights){
-        e.incrementWeight()
-      }
+      // if(incrementWeights){
+      //   e.incrementWeight()
+      // }
 
       logOffset++; 
     }
@@ -106,20 +106,20 @@ function saveSet(incrementWeights) {
     rangeOffset++;
   }
 
-  if(incrementWeights){
-    var allExervises = load2()
+  // if(incrementWeights){
+  //   var allExervises = load2()
 
-    for (let i = 0; i < allExervises.length; i++) { 
-      for (e of exercises){
+  //   for (let i = 0; i < allExervises.length; i++) { 
+  //     for (e of exercises){
 
-        if(allExervises[i]._name == e._name){
-          allExervises[i] = e;
-        }
-      }
-    }
+  //       if(allExervises[i]._name == e._name){
+  //         allExervises[i] = e;
+  //       }
+  //     }
+  //   }
 
-    saveExercises(allExervises)
-  }
+  //   saveExercises(allExervises)
+  // }
   
   populateDashboard();
 }
@@ -210,8 +210,9 @@ function getSet(setName){
 function onEdit(e) {
   
   const sheet = e.range.getSheet();
+  const name = e.range.getSheet().getName()
 
-  if (e.range.getSheet().getName() === 'Dashboard') {
+  if ( name === 'Dashboard') {
 
   const row = e.range.rowStart;
   const col = e.range.columnStart;
@@ -293,13 +294,17 @@ function load2() {
   
   for (rawE of rawExerciseData){
     var myObject = JSON.parse(rawE) 
+
+    // print(myObject._doubleIncrement,true)
+
     var weights = []
 
     for (const weight of myObject._weights){
       const {_mass, _count, _inUse} = weight;
       weights.push(new Weight(_mass, _count, _inUse))
     }
-    exercises.push( new Exercise(myObject._owner, myObject._name, weights, myObject._barMass, myObject._set))
+
+    exercises.push( new Exercise(myObject._owner, myObject._name, weights, myObject._barMass, myObject._set, myObject._previousWeight, myObject._doubleIncrement))
   }
   return exercises
 }
@@ -332,6 +337,7 @@ function saveExercises(exercises){
   var offset = 0
 
   for (const e of exercises){
+    // print(JSON.stringify(e))
     sheet.getRange(`${EXERCISE_COL}${EXERCISE_ROW+offset}`).setValue(JSON.stringify(e) )
     offset++
   }

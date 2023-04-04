@@ -1,13 +1,15 @@
 class Exercise {
   // Constructor function to initialize the object
-  constructor(owner, name, weights, barMass, setName, incrementBothSides, previousWeight = 0) {
+  constructor(owner, name, weights, barMass, setName, previousWeight = 0, doubleIncrement = true) {
     this._owner = owner;
     this._name = name;
     this._set = setName;
     this._barMass = barMass;
     this._weights = weights;
-    this._incrementBothSides = incrementBothSides;
     this._previousWeight = previousWeight;
+    this._doubleIncrement = doubleIncrement;
+
+    // print(doubleIncrement)
   }
 
 
@@ -127,24 +129,37 @@ class Exercise {
   }
 
   incrementWeight() {
-    const newWeight = this.currentMass() + 2*this.findSmallestWeight(false) - this._barMass; //new weight to match
-    this.findOptimalWeights(newWeight)
+    this.setPreviousWeights()
+
+    if (this._doubleIncrement)
+      this.findOptimalWeights(this.currentMass() + 2*this.findSmallestWeight(false) - this._barMass)
+    else
+      this.findOptimalWeights(this.currentMass() + this.findSmallestWeight(false) - this._barMass)
+
   }
 
 
   decrementWeight() {
-    var newWeight = this.currentMass() - 2*this.findSmallestWeight(false) - this._barMass; //new weight to match
-    this.findOptimalWeights(newWeight)
+    this.setPreviousWeights()
+    // if (!this._doubleIncrement)
+    //   this.findOptimalWeights(this.currentMass() - this.findSmallestWeight(false) - this._barMass)
+    // else
+      this.findOptimalWeights(this.currentMass() - 2*this.findSmallestWeight(false) - this._barMass)
   }
   
 
   incrementWeightMini() {
+    this.setPreviousWeights()
+    //  if (this._doubleIncrement)
     const newWeight = this.currentMass() + 2*this.findSmallestWeight(true) - this._barMass; //new weight to match
-    this.findOptimalWeights(newWeight)
+     this.findOptimalWeights(newWeight)
+    // else
+    //   this.findOptimalWeights(this.currentMass() + this.findSmallestWeight(true) - this._barMass)
   }
 
 
   decrementWeightMini() {
+    this.setPreviousWeights()
     var newWeight = this.currentMass() - 2*this.findSmallestWeight(true) - this._barMass; //new weight to match
     this.findOptimalWeights(newWeight)
   }
@@ -161,15 +176,29 @@ class Exercise {
 
     //find the best weight combination 
     for (const weight of this._weights){
-      for (var i = weight._count; i > 0; i-=2) {
-        const twoSidedWeight =  i*weight._mass;
-        if(twoSidedWeight <= newWeight){          
-          weight._inUse = i;
-          newWeight -= weight._mass*weight._inUse;
-          break;
+
+      if(this._doubleIncrement){
+        for (var i = weight._count; i > 0; i-=2) {
+          const twoSidedWeight =  i*weight._mass;
+          if(twoSidedWeight <= newWeight){          
+            weight._inUse = i;
+            newWeight -= weight._mass*weight._inUse;
+            break;
+          }
+        }
+      }
+      else{
+        for (var i = weight._count; i > 0; i-=1) {
+          const singleSidedWeight =  i*weight._mass;
+          if(singleSidedWeight <= newWeight){          
+            weight._inUse = i;
+            newWeight -= weight._mass*weight._inUse;
+            break;
+          }
         }
       }
 
+    
       if (newWeight == 0)
       {
         return true;
