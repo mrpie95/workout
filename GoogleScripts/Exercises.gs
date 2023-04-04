@@ -141,27 +141,33 @@ class Exercise {
 
   decrementWeight() {
     this.setPreviousWeights()
-    // if (!this._doubleIncrement)
-    //   this.findOptimalWeights(this.currentMass() - this.findSmallestWeight(false) - this._barMass)
-    // else
+
+    if (this._doubleIncrement)
       this.findOptimalWeights(this.currentMass() - 2*this.findSmallestWeight(false) - this._barMass)
+    else
+      this.findOptimalWeights(this.currentMass() - this.findSmallestWeight(false) - this._barMass)
   }
   
 
   incrementWeightMini() {
     this.setPreviousWeights()
-    //  if (this._doubleIncrement)
-    const newWeight = this.currentMass() + 2*this.findSmallestWeight(true) - this._barMass; //new weight to match
-     this.findOptimalWeights(newWeight)
-    // else
-    //   this.findOptimalWeights(this.currentMass() + this.findSmallestWeight(true) - this._barMass)
+
+    if (this._doubleIncrement)
+      this.findOptimalWeights(this.currentMass() + 2*this.findSmallestWeight(true) - this._barMass)
+    else
+      this.findOptimalWeights(this.currentMass() + this.findSmallestWeight(true) - this._barMass)
+
   }
 
 
   decrementWeightMini() {
-    this.setPreviousWeights()
-    var newWeight = this.currentMass() - 2*this.findSmallestWeight(true) - this._barMass; //new weight to match
-    this.findOptimalWeights(newWeight)
+   this.setPreviousWeights()
+
+    if (this._doubleIncrement)
+      this.findOptimalWeights(this.currentMass() - 2*this.findSmallestWeight(true) - this._barMass)
+    else
+      this.findOptimalWeights(this.currentMass() - this.findSmallestWeight(true) - this._barMass)
+
   }
   
   //find the optimal weight configuration
